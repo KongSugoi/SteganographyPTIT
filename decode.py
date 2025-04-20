@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from scipy.fftpack import dct
 
-# Danh sách tên file ảnh đầu vào
+# list input image
 pictures = [
     'output.bmp',
     'gaussianwn.bmp',
@@ -12,29 +12,28 @@ pictures = [
     'compressed.jpg'
 ]
 
-# Kích thước ảnh gốc và ảnh bí mật
+# Original and secret image sizes
 original_row = 480
 original_col = 640
 
 secret_row = 160
 secret_col = 160
 
-# Hàm DCT 2 chiều
+# 2 way DCT 
 def dct2(a):
     return dct(dct(a.T, norm='ortho').T, norm='ortho')
 
-# Lặp qua từng ảnh
 for filename in pictures:
-    # Đọc ảnh grayscale
+    # read grayscale
     marked = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
 
-    # Chuyển về float để DCT
+    # convert to float for DCT
     marked_dcted = dct2(np.float32(marked))
 
-    # Khởi tạo ảnh bí mật trích xuất
+    #Initialize secret image extraction
     secret = np.zeros((secret_row, secret_col), dtype=np.uint8)
 
-    # Duyệt từng pixel bí mật
+    # Browse every secret pixel
     for i in range(secret_row):
         for j in range(secret_col):
             x1 = original_row - 2 * i - 1
@@ -42,10 +41,10 @@ for filename in pictures:
             y = original_col - 2 * j - 1
 
             if marked_dcted[x2, y] < marked_dcted[x1, y]:
-                secret[i, j] = 255  # pixel trắng
+                secret[i, j] = 255  # white pixel
             else:
-                secret[i, j] = 0    # pixel đen
+                secret[i, j] = 0    # black pixel
 
-    # Tạo tên ảnh đầu ra
+    # output image
     out_name = f'secret_{filename}.bmp'
     cv2.imwrite(out_name, secret)
