@@ -2,27 +2,27 @@ import cv2
 import numpy as np
 from scipy.fftpack import dct, idct
 
-# Hàm DCT và IDCT 2 chiều
+# DCT function and IDCT function
 def dct2(a):
     return dct(dct(a.T, norm='ortho').T, norm='ortho')
 
 def idct2(a):
     return idct(idct(a.T, norm='ortho').T, norm='ortho')
 
-# Đọc ảnh gốc (grayscale)
+# Read original image (grayscale)
 original = cv2.imread('original.bmp', cv2.IMREAD_GRAYSCALE)
 original_row, original_col = original.shape
 
-# Đọc ảnh chứa thông tin bí mật và chuyển thành nhị phân
+# Read secret image and convert to bit
 secret_img = cv2.imread('./SecretPics/secret160.bmp', cv2.IMREAD_GRAYSCALE)
 _, secret_bw = cv2.threshold(secret_img, 127, 1, cv2.THRESH_BINARY)
 secret_row, secret_col = secret_bw.shape
 
-# Thực hiện DCT
+# DCT
 img_dcted = dct2(np.float32(original))
 alpha = 15
 
-# Ẩn ảnh bằng DCT
+# merge image with DCT
 for i in range(secret_row):
     for j in range(secret_col):
         x1 = original_row - 2 * i - 1
@@ -36,7 +36,7 @@ for i in range(secret_row):
             if img_dcted[x2, y] > img_dcted[x1, y]:
                 img_dcted[x1, y], img_dcted[x2, y] = img_dcted[x2, y], img_dcted[x1, y]
 
-        # Điều chỉnh độ chênh lệch giữa 2 hệ số
+        # Adjust the difference between 2 coefficients
         if img_dcted[x2, y] < img_dcted[x1, y]:
             img_dcted[x2, y] -= alpha
             img_dcted[x1, y] += alpha
@@ -44,7 +44,7 @@ for i in range(secret_row):
             img_dcted[x2, y] += alpha
             img_dcted[x1, y] -= alpha
 
-# IDCT và lưu ảnh đã nhúng
+# IDCT and save image
 output = idct2(img_dcted)
 output = np.clip(output, 0, 255).astype(np.uint8)
 cv2.imwrite('output.bmp', output)
